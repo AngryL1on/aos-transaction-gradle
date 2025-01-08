@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-//option java_multiple_files = true;
 option java_package = "dev.angryl1on.grpc";
 option java_outer_classname = "TransactionsProto";
 
@@ -9,7 +8,8 @@ message TransactionRequest {
 }
 
 message TransactionListRequest {
-  // критерии фильтрации, если нужно
+  // do nothing
+  // [OPTIONAL] You can add filters here
 }
 
 message Transaction {
@@ -50,18 +50,18 @@ message TransactionListResponse {
 }
 
 service DomainService {
-  // Получение транзакции по ID (синхронный GET)
-  rpc GetTransactionById(TransactionRequest) returns (TransactionResponse);
-
-  // Получение списка транзакций (синхронный GET)
-  rpc GetAllTransactions(TransactionListRequest) returns (TransactionListResponse);
-
-  // Создание новой транзакции (асинхронный POST -> через очередь RabbitMQ)
+  // Creating a new transaction (asynchronous POST -> via RabbitMQ queue)
   rpc CreateTransaction(CreateTransactionRequest) returns (TransactionResponse);
 
-  // Обновление транзакции (асинхронный PUT -> через очередь RabbitMQ)
+  // Receiving a transaction by ID (synchronous GET)
+  rpc GetTransactionById(TransactionRequest) returns (TransactionResponse);
+
+  // Retrieving a list of transactions (synchronous GET)
+  rpc GetAllTransactions(TransactionListRequest) returns (TransactionListResponse);
+
+  // Transaction update (asynchronous PUT -> via RabbitMQ queue)
   rpc UpdateTransaction(UpdateTransactionRequest) returns (TransactionResponse);
 
-  // Удаление транзакции (асинхронный DELETE -> через очередь RabbitMQ)
+  // Deleting a transaction (asynchronous DELETE -> via RabbitMQ queue)
   rpc DeleteTransaction(DeleteTransactionRequest) returns (TransactionResponse);
 }

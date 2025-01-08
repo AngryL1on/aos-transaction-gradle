@@ -9,7 +9,8 @@ message TransactionRequest {
 }
 
 message TransactionListRequest {
-  // критерии фильтрации, если нужно
+  // do nothing
+  // [OPTIONAL] You can add filters here
 }
 
 message Transaction {
@@ -50,18 +51,18 @@ message TransactionListResponse {
 }
 
 service DomainService {
-  // Создание новой транзакции (асинхронный POST -> через очередь RabbitMQ)
+  // Creating a new transaction (asynchronous POST -> via RabbitMQ queue)
   rpc CreateTransaction(CreateTransactionRequest) returns (TransactionResponse);
 
-  // Получение транзакции по ID (синхронный GET)
+  // Receiving a transaction by ID (synchronous GET)
   rpc GetTransactionById(TransactionRequest) returns (TransactionResponse);
 
-  // Получение списка транзакций (синхронный GET)
+  // Retrieving a list of transactions (synchronous GET)
   rpc GetAllTransactions(TransactionListRequest) returns (TransactionListResponse);
 
-  // Обновление транзакции (асинхронный PUT -> через очередь RabbitMQ)
+  // Transaction update (asynchronous PUT -> via RabbitMQ queue)
   rpc UpdateTransaction(UpdateTransactionRequest) returns (TransactionResponse);
 
-  // Удаление транзакции (асинхронный DELETE -> через очередь RabbitMQ)
+  // Deleting a transaction (asynchronous DELETE -> via RabbitMQ queue)
   rpc DeleteTransaction(DeleteTransactionRequest) returns (TransactionResponse);
 }

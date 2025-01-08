@@ -1,12 +1,8 @@
 spring:
-  rabbitmq:
-    host: localhost
-    virtual-host: "/"
-    port: 5672
-    username: guest
-    password: guest
   application:
     name: "domain"
-  data:
-    mongodb:
-      uri: "mongodb://mongo:27017/transaction_db"
+
+  config:
+    import:
+      - classpath:application-db.yaml
+      - classpath:application-mb.yaml

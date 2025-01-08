@@ -11,15 +11,59 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+/**
+ * RabbitMQ Listener for handling messages from the transaction queue.
+ *
+ * <p>This class listens for messages on the queue defined in
+ * {@link RabbitMqConfiguration#TRANSACTION_QUEUE} and processes them
+ * based on the specified operation in the message.</p>
+ *
+ * <p>The listener expects messages in JSON format representing a
+ * {@link TransactionDTO}, which it deserializes and processes to
+ * perform create, update, or delete operations on {@link TransactionEntity}
+ * in the MongoDB database.</p>
+ *
+ * <p>Usage of this class assumes a properly configured RabbitMQ setup
+ * and a functional {@link TransactionRepository} for database operations.</p>
+ *
+ * @author AngryL1on
+ * @version 1.0
+ * @since 1.0
+ */
 @Component
 public class RabbitMqListener {
+
+    /**
+     * Repository for performing CRUD operations on transactions.
+     */
     private final TransactionRepository transactionRepository;
 
+    /**
+     * Constructs a new {@code RabbitMqListener} with the provided repository.
+     *
+     * @param transactionRepository The repository to use for database operations.
+     */
     @Autowired
     public RabbitMqListener(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }
 
+    /**
+     * Handles incoming messages from the transaction queue.
+     *
+     * <p>This method listens to the queue defined in {@link RabbitMqConfiguration#TRANSACTION_QUEUE}.
+     * Messages are expected to be in JSON format and represent a {@link TransactionDTO}.
+     * Based on the {@code operation} field in the message, this method performs the following:
+     * <ul>
+     *   <li>Create: Creates a new transaction and saves it to the database.</li>
+     *   <li>Update: Updates an existing transaction if it exists in the database.</li>
+     *   <li>Delete: Deletes a transaction by its ID.</li>
+     *   <li>Unknown: Logs an error message for unsupported operations.</li>
+     * </ul>
+     * </p>
+     *
+     * @param message The message received from the queue, expected to be in JSON format.
+     */
     @RabbitListener(queues = RabbitMqConfiguration.TRANSACTION_QUEUE)
     public void handleMessage(String message) {
         try {
