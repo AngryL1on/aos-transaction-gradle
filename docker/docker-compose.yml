@@ -6,7 +6,6 @@ services:
     restart: always
     volumes:
       - mongo-data:/data/db
-      - ./mongo-init-scripts:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
     networks:
@@ -54,6 +53,7 @@ services:
     container_name: logstash
     volumes:
       - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ./logs/application.log:/app/logs/application.log
     ports:
       - "5000:5000"
     depends_on:
@@ -62,33 +62,50 @@ services:
       - app-network
 
 
-  # --- Elasticsearch ---
   elasticsearch:
-    image: elasticsearch:7.17.0
+    image: elasticsearch:8.8.0
     container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
     ports:
       - "9200:9200"
+    environment:
+      discovery.type: single-node
+      xpack.security.enrollment.enabled: "true"
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     networks:
       - app-network
 
+  # --- Elasticsearch ---
+#  elasticsearch:
+#    image: elasticsearch:7.17.0
+#    container_name: elasticsearch
+#    environment:
+#      - discovery.type=single-node
+#    ulimits:
+#      memlock:
+#        soft: -1
+#        hard: -1
+#    volumes:
+#      - elasticsearch_data:/usr/share/elasticsearch/data
+#    ports:
+#      - "9200:9200"
+#    networks:
+#      - app-network
+#
   # --- Kibana ---
   kibana:
-    image: kibana:7.17.0
+    image: kibana:8.8.0
     container_name: kibana
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS=["http://elasticsearch:9200"]
     ports:
       - "5601:5601"
+    depends_on:
+      - elasticsearch
     networks:
       - app-network
+
 
   # --- Prometheus ---
   prometheus:
@@ -145,6 +162,8 @@ services:
       - domain-service
       - redis
       - logstash
+    volumes:
+      - ./logs/application.log:/app/logs/application.log
     networks:
       - app-network
 
