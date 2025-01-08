@@ -6,8 +6,22 @@ services:
     restart: always
     volumes:
       - mongo-data:/data/db
+      - ./mongo-init-scripts:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
+    networks:
+      - app-network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongoui
+    ports:
+      - "8088:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
     networks:
       - app-network
 
@@ -43,29 +57,29 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - opensearch
+      - elasticsearch
     networks:
       - app-network
 
-  # --- OpenSearch ---
-  opensearch:
-    image: opensearchproject/opensearch:2.7.0
-    container_name: opensearch
+
+  # --- Elasticsearch ---
+  elasticsearch:
+    image: elasticsearch:7.17.0
+    container_name: elasticsearch
     environment:
       - discovery.type=single-node
-      - OPENSEARCH_USERNAME=admin
-      - OPENSEARCH_PASSWORD=admin
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
-      - opensearch_data:/usr/share/opensearch/data
+      - elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     networks:
       - app-network
 
+  # --- Kibana ---
   kibana:
     image: kibana:7.17.0
     container_name: kibana
@@ -76,6 +90,7 @@ services:
     networks:
       - app-network
 
+  # --- Prometheus ---
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -86,6 +101,7 @@ services:
     networks:
       - app-network
 
+  # --- Grafana ---
   grafana:
     image: grafana/grafana-enterprise
     container_name: grafana
@@ -135,6 +151,7 @@ services:
 volumes:
   mongo-data:
   opensearch_data:
+  elasticsearch_data:
 
 networks:
   app-network:
