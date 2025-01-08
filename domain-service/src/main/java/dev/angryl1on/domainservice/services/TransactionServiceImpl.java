@@ -31,22 +31,26 @@ public class TransactionServiceImpl extends DomainServiceGrpc.DomainServiceImplB
     public void createTransaction(CreateTransactionRequest request, StreamObserver<TransactionResponse> responseObserver) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            String jsonMessage = objectMapper.writeValueAsString( new TransactionDTO(
-                    null,
-                    request.getAmount(),
-                    request.getDate(),
-                    request.getType()
-            ));
+            String jsonMessage = objectMapper.writeValueAsString(
+                    new TransactionDTO(
+                            null,
+                            request.getAmount(),
+                            request.getDate(),
+                            request.getType(),
+                            "CREATE"  // <- явное указание операции
+                    )
+            );
+            rabbitTemplate.convertAndSend(
+                    RabbitMqConfiguration.TRANSACTION_EXCHANGE,
+                    RabbitMqConfiguration.TRANSACTION_ROUTING_KEY,
+                    jsonMessage
+            );
 
-            System.out.println("Sending JSON message: " + jsonMessage);
-
-            rabbitTemplate.convertAndSend(RabbitMqConfiguration.TRANSACTION_EXCHANGE, RabbitMqConfiguration.TRANSACTION_ROUTING_KEY, jsonMessage);
-
+            // Возвращаем synch-ответ, что всё ок
             TransactionResponse response = TransactionResponse.newBuilder()
                     .setSuccess(true)
-                    .setMessage("Transaction created successfully")
+                    .setMessage("Transaction creation request sent successfully")
                     .build();
-
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
@@ -87,7 +91,6 @@ public class TransactionServiceImpl extends DomainServiceGrpc.DomainServiceImplB
 
         for (TransactionEntity entity : transactions) {
             TransactionResponse transactionResponse = TransactionResponse.newBuilder()
-                    // Если хотите, можете выставить success/message по-другому
                     .setSuccess(true)
                     .setMessage("OK")
                     .setId(entity.getId())
@@ -104,27 +107,35 @@ public class TransactionServiceImpl extends DomainServiceGrpc.DomainServiceImplB
         responseObserver.onCompleted();
     }
 
-
     @Override
     public void updateTransaction(UpdateTransactionRequest request,
-                                   StreamObserver<TransactionResponse> responseObserver) {
+                                  StreamObserver<TransactionResponse> responseObserver) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            String jsonMessage = objectMapper.writeValueAsString(new TransactionDTO(
+
+            TransactionDTO dto = new TransactionDTO(
                     request.getId(),
                     request.getAmount(),
                     request.getDate(),
                     request.getType()
-            ));
+            );
+            dto.setOperation("UPDATE");
+
+            String jsonMessage = objectMapper.writeValueAsString(dto);
 
             System.out.println("Sending JSON update message: " + jsonMessage);
 
-            rabbitTemplate.convertAndSend(RabbitMqConfiguration.TRANSACTION_EXCHANGE, RabbitMqConfiguration.TRANSACTION_ROUTING_KEY, jsonMessage);
+            rabbitTemplate.convertAndSend(
+                    RabbitMqConfiguration.TRANSACTION_EXCHANGE,
+                    RabbitMqConfiguration.TRANSACTION_ROUTING_KEY,
+                    jsonMessage
+            );
 
             TransactionResponse response = TransactionResponse.newBuilder()
                     .setSuccess(true)
-                    .setMessage("Transaction update request sent for processing")
+                    .setMessage("Transaction update request sent successfully")
                     .build();
+
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
@@ -132,27 +143,26 @@ public class TransactionServiceImpl extends DomainServiceGrpc.DomainServiceImplB
             responseObserver.onError(e);
         }
     }
+
 
     @Override
     public void deleteTransaction(DeleteTransactionRequest request, StreamObserver<TransactionResponse> responseObserver) {
         try {
-            // Преобразование объекта StudentRequest в JSON
             ObjectMapper objectMapper = new ObjectMapper();
-            String jsonMessage = objectMapper.writeValueAsString(new TransactionDTO(
-                    request.getId(),
-                    null,
-                    null,
-                    null
-            ));
-
-            // Лог для проверки
-            System.out.println("Sending JSON delete message: " + jsonMessage);
-
+            String jsonMessage = objectMapper.writeValueAsString(
+                    new TransactionDTO(
+                            request.getId(),
+                            null,
+                            null,
+                            null,
+                            "DELETE"
+                    )
+            );
             rabbitTemplate.convertAndSend(RabbitMqConfiguration.TRANSACTION_EXCHANGE, RabbitMqConfiguration.TRANSACTION_ROUTING_KEY, jsonMessage);
 
             TransactionResponse response = TransactionResponse.newBuilder()
                     .setSuccess(true)
-                    .setMessage("Transaction deletion request sent for processing")
+                    .setMessage("Transaction deletion request sent successfully")
                     .build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
@@ -161,4 +171,5 @@ public class TransactionServiceImpl extends DomainServiceGrpc.DomainServiceImplB
             responseObserver.onError(e);
         }
     }
+
 }

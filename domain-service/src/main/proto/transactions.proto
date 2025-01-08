@@ -50,14 +50,14 @@ message TransactionListResponse {
 }
 
 service DomainService {
+  // Создание новой транзакции (асинхронный POST -> через очередь RabbitMQ)
+  rpc CreateTransaction(CreateTransactionRequest) returns (TransactionResponse);
+
   // Получение транзакции по ID (синхронный GET)
   rpc GetTransactionById(TransactionRequest) returns (TransactionResponse);
 
   // Получение списка транзакций (синхронный GET)
   rpc GetAllTransactions(TransactionListRequest) returns (TransactionListResponse);
-
-  // Создание новой транзакции (асинхронный POST -> через очередь RabbitMQ)
-  rpc CreateTransaction(CreateTransactionRequest) returns (TransactionResponse);
 
   // Обновление транзакции (асинхронный PUT -> через очередь RabbitMQ)
   rpc UpdateTransaction(UpdateTransactionRequest) returns (TransactionResponse);

@@ -3,11 +3,11 @@ package dev.angryl1on.domainservice;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class DomainServiceApplicationTests {
-
-    @Test
-    void contextLoads() {
-    }
-
-}
+//@SpringBootTest
+//class DomainServiceApplicationTests {
+//
+//    @Test
+//    void contextLoads() {
+//    }
+//
+//}

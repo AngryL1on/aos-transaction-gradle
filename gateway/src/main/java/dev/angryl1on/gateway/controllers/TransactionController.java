@@ -19,29 +19,36 @@ public class TransactionController {
     private final DomainServiceGrpc.DomainServiceBlockingStub stub;
 
     public TransactionController() {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("domain-service", 8080)
+        ManagedChannel channel = ManagedChannelBuilder
+                .forAddress("domain-service", 8080)
                 .usePlaintext()
                 .build();
+
         this.stub = DomainServiceGrpc.newBlockingStub(channel);
     }
 
-    // CREATE
+    /**
+     * CREATE (POST)
+     * Отправляем gRPC-запрос CreateTransactionRequest в сервис.
+     */
     @PostMapping
     @CacheEvict(value = {"transactionsList", "transactions"}, allEntries = true)
-    public String createTransaction(@RequestBody TransactionDTO transaction) {
-        // ИСПРАВЛЕННО: CreateTransactionRequest, а не TransactionRequest
+    public String createTransaction(@RequestBody TransactionDTO transactionRequest) {
         TransactionsProto.CreateTransactionRequest request =
                 TransactionsProto.CreateTransactionRequest.newBuilder()
-                        .setAmount(transaction.getAmount())
-                        .setDate(transaction.getDate())
-                        .setType(transaction.getType())
+                        .setAmount(transactionRequest.getAmount())
+                        .setDate(transactionRequest.getDate())
+                        .setType(transactionRequest.getType())
                         .build();
 
         TransactionsProto.TransactionResponse response = stub.createTransaction(request);
         return response.getMessage();
     }
 
-    // READ by ID
+    /**
+     * READ by ID (GET)
+     * Отправляем gRPC-запрос GetTransactionById -> TransactionRequest.
+     */
     @GetMapping("/{id}")
     @Cacheable(value = "transactions", key = "#id", unless = "#result == null")
     public TransactionDTO getTransactionById(@PathVariable String id) {
@@ -52,6 +59,7 @@ public class TransactionController {
 
         TransactionsProto.TransactionResponse response = stub.getTransactionById(request);
 
+        // Формируем DTO для отдачи во внешний мир (REST)
         return new TransactionDTO(
                 response.getId(),
                 response.getAmount(),
@@ -60,7 +68,10 @@ public class TransactionController {
         );
     }
 
-    // READ ALL
+    /**
+     * READ ALL (GET)
+     * Отправляем gRPC-запрос GetAllTransactions -> TransactionListRequest.
+     */
     @GetMapping
     @Cacheable(value = "transactionsList", unless = "#result == null || #result.isEmpty()")
     public List<TransactionDTO> getAllTransactions() {
@@ -71,7 +82,6 @@ public class TransactionController {
         TransactionsProto.TransactionListResponse response = stub.getAllTransactions(request);
 
         List<TransactionDTO> transactions = new ArrayList<>();
-        // ИСПРАВЛЕНО: getTransactionsList() вместо getStudentsList()
         for (TransactionsProto.TransactionResponse tr : response.getTransactionsList()) {
             transactions.add(new TransactionDTO(
                     tr.getId(),
@@ -83,11 +93,13 @@ public class TransactionController {
         return transactions;
     }
 
-    // UPDATE
+    /**
+     * UPDATE (PUT)
+     * Отправляем gRPC-запрос UpdateTransactionRequest.
+     */
     @PutMapping("/{id}")
-    @CacheEvict(value = "transactions", key = "#id")
+    @CacheEvict(value = {"transactions", "transactionsList"}, key = "#id", allEntries = true)
     public String updateTransaction(@PathVariable String id, @RequestBody TransactionDTO transactionRequest) {
-        // ИСПРАВЛЕНО: UpdateTransactionRequest, а не Transaction
         TransactionsProto.UpdateTransactionRequest request =
                 TransactionsProto.UpdateTransactionRequest.newBuilder()
                         .setId(id)
@@ -100,11 +112,13 @@ public class TransactionController {
         return response.getMessage();
     }
 
-    // DELETE
+    /**
+     * DELETE (DELETE)
+     * Отправляем gRPC-запрос DeleteTransactionRequest.
+     */
     @DeleteMapping("/{id}")
-    @CacheEvict(value = {"transactionsList", "transactions"}, key = "#id")
+    @CacheEvict(value = {"transactionsList", "transactions"}, key = "#id", allEntries = true)
     public String deleteTransaction(@PathVariable String id) {
-        // ИСПРАВЛЕНО: DeleteTransactionRequest, а не TransactionRequest/StudentRequest
         TransactionsProto.DeleteTransactionRequest request =
                 TransactionsProto.DeleteTransactionRequest.newBuilder()
                         .setId(id)

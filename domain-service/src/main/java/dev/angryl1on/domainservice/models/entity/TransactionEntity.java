@@ -21,6 +21,12 @@ public class TransactionEntity {
         this.type = type;
     }
 
+    public TransactionEntity(double amount, String date, String type) {
+        this.amount = amount;
+        this.date = date;
+        this.type = type;
+    }
+
     public String getId() {
         return id;
     }
