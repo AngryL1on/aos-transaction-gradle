@@ -1,6 +1,6 @@
 package dev.angryl1on.gateway.controllers;
 
-import dev.angryl1on.gateway.TransactionDTO;
+import dev.angryl1on.gateway.models.dtos.TransactionDTO;
 import dev.angryl1on.grpc.DomainServiceGrpc;
 import dev.angryl1on.grpc.TransactionsProto;
 import io.grpc.ManagedChannel;
@@ -59,7 +59,6 @@ public class TransactionController {
 
         TransactionsProto.TransactionResponse response = stub.getTransactionById(request);
 
-        // Формируем DTO для отдачи во внешний мир (REST)
         return new TransactionDTO(
                 response.getId(),
                 response.getAmount(),

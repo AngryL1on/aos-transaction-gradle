@@ -1,4 +1,4 @@
-package dev.angryl1on.gateway;
+package dev.angryl1on.gateway.models.dtos;
 
 public class TransactionDTO {
     private String id;

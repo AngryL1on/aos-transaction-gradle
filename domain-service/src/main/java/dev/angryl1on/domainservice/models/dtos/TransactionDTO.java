@@ -2,7 +2,7 @@ package dev.angryl1on.domainservice.models.dtos;
 
 public class TransactionDTO {
     private String id;
-    private Double  amount;
+    private Double amount;
     private String date;
     private String type;
     private String operation;
@@ -33,11 +33,11 @@ public class TransactionDTO {
         this.id = id;
     }
 
-    public Double  getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(Double  amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 
