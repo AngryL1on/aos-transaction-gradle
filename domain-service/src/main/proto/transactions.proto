@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "dev.angryl1on.grpc";
+option java_outer_classname = "TransactionsProto";
+
+message TransactionRequest {
+  string id = 1;
+}
+
+message TransactionListRequest {
+  // критерии фильтрации, если нужно
+}
+
+message Transaction {
+  string id = 1;
+  double amount = 2;
+  string date = 3;
+  string type = 4;
+}
+
+message CreateTransactionRequest {
+  double amount = 1;
+  string date = 2;
+  string type = 3;
+}
+
+message UpdateTransactionRequest {
+  string id = 1;
+  double amount = 2;
+  string date = 3;
+  string type = 4;
+}
+
+message DeleteTransactionRequest {
+  string id = 1;
+}
+
+message TransactionResponse {
+  bool success = 1;
+  string message = 2;
+  string id = 3;
+  double amount = 4;
+  string date = 5;
+  string type = 6;
+}
+
+message TransactionListResponse {
+  repeated TransactionResponse transactions = 1;
+}
+
+service DomainService {
+  // Получение транзакции по ID (синхронный GET)
+  rpc GetTransactionById(TransactionRequest) returns (TransactionResponse);
+
+  // Получение списка транзакций (синхронный GET)
+  rpc GetAllTransactions(TransactionListRequest) returns (TransactionListResponse);
+
+  // Создание новой транзакции (асинхронный POST -> через очередь RabbitMQ)
+  rpc CreateTransaction(CreateTransactionRequest) returns (TransactionResponse);
+
+  // Обновление транзакции (асинхронный PUT -> через очередь RabbitMQ)
+  rpc UpdateTransaction(UpdateTransactionRequest) returns (TransactionResponse);
+
+  // Удаление транзакции (асинхронный DELETE -> через очередь RabbitMQ)
+  rpc DeleteTransaction(DeleteTransactionRequest) returns (TransactionResponse);
+}
